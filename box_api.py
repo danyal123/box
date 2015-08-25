@@ -44,13 +44,15 @@ def info(file_id):
             print ('\n')
         elif i==i:
             print(i, end="")
+            
+#create metadata 
 def metatcreate(file_id,key,value):
     client.file(file_id=file_id).metadata().create({key: value})
-
+#get metadata 
 def meta(file_id):
     meta_data=client.file(file_id=file_id).metadata().get()
     print (meta_data)
-
+#updata meta data 
 def up_meta():
     metadata = client.file(file_id='file_id').metadata()
     update = metadata.start_update()
