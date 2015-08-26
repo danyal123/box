@@ -10,6 +10,7 @@ Created on Wed Aug 19 11:25:11 2015
 # the line above when used in curl will give folder ids and file ids that can be used in the functions defined 
 
 from __future__ import print_function, unicode_literals
+from boxsdk import client
 from boxsdk import Client, OAuth2
 from boxsdk.network.default_network import DefaultNetwork
 from boxsdk.exception import BoxAPIException
@@ -72,7 +73,7 @@ print('This is up to the first 10 items in the root folder in JNJ Box:')
 for item in items:
     print("   " + item.name)
 
-
+meta_data=client.folder(folder_id="0").metadata().get()
 
 
     
