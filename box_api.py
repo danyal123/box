@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Aug 19 11:25:11 2015
-
 @author: dhussai
 """
-
-
 #curl "https://api.box.com/2.0/folders/folder_id/items?limit=100&offset=0" -H "Authorization: Bearer access token" -i -s
 # the line above when used in curl will give folder ids and file ids that can be used in the functions defined 
-
 from __future__ import print_function, unicode_literals
-from boxsdk import client
 from boxsdk import Client, OAuth2
 from boxsdk.network.default_network import DefaultNetwork
 from boxsdk.exception import BoxAPIException
@@ -19,61 +14,115 @@ from boxsdk.object import file,metadata
 from boxsdk.object.folder import Folder
 from boxsdk.session.box_session import BoxSession
 from boxsdk.object.events import Events
-# User variables
+from boxsdk.object.item import Item
+import pycurl,re,os,sys,json_tools,json
+import boto,unittest,StringIO
+class Test:
+    def __init__(self):
+        self.contents = ''
+    def body_callback(self, buf):
+        self.contents = self.contents + buf
+sys.stderr.write("Testing %sn" % pycurl.version)
+
+#User variables
 client_id= "client_id"
 client_secret= "client_secret"
-
-def create_subfolders(folder_ID,folder_name):
-    client.folder(folder_id=folder_ID).create_subfolder(folder_name)
-    
+parent_folder= "4308645477"
+def create_subfolders(folder_ID):
+    client.folder(folder_id=folder_ID).create_subfolder("Incoming")
+    client.folder(folder_id=folder_ID).create_subfolder("Rejected")
+def create_branch(seed_branch):
+    client.folder(folder_id=seed_branch).create_subfolder("Test")
+    client.folder(folder_id=seed_branch).create_subfolder("QA")
+    client.folder(folder_id=seed_branch).create_subfolder("Production")
+    client.folder(folder_id=seed_branch).create_subfolder("Development")
 def create_parentfolders(folder_name_parent):
-    client.folder(folder_id='0').create_subfolder(folder_name_parent)
-    
+    list_of_vendors=client.folder(folder_id='4308645477').create_subfolder(folder_name_parent)
+    return list_of_vendors
 def movefile(file_ID,folder_ID):
     client.file(file_id=file_ID).move(client.folder(folder_id=folder_ID))
-    
 def rename(file_ID,new_name):
     client.file(file_id=file_ID).rename(new_name)
-    
 def delete(folder_ID):
     client.folder(folder_id=folder_ID).delete()
 ##the regex can be changed prn user requirments i used commas just as an example the regex module can also be used  
+def ids(folder_id):
+    t = Test()
+    c = pycurl.Curl()
+    c.setopt(c.URL, (str("https://api.box.com/2.0/folders/%s")%(folder_id)))
+    c.setopt(pycurl.HTTPHEADER, ['Authorization: Bearer 4cgX9o4b9T27ckbA9t3emKTLCdHXvxLR'])
+    c.setopt(c.WRITEFUNCTION, t.body_callback)
+    c.perform()
+    c.close()
+    contents=(t.contents)
+    #print(contents)
+    jsondict=(json.JSONDecoder().decode(contents))
+    collect=(jsondict['item_collection'])
+    ids= (collect['entries'])
+    dicts={}
+    vendor_ids=[]
+    for k in ids[0]: 
+        if k == None :
+            break 
+        dicts[k]=[d[k]for d in ids]
+    name=dicts["name"]
+    vendor_ids=dicts["id"]
+    return vendor_ids,name
 def info(file_id):
     info=client.file(file_id=file_id).content()
-    for i in info :
-        if i == ",":
-            print ('\n')
-        elif i==i:
-            print(i, end="")
-            
+    return (info)
 #create metadata 
 def metatcreate(file_id,key,value):
     client.file(file_id=file_id).metadata().create({key: value})
 #get metadata 
 def meta(file_id):
     meta_data=client.file(file_id=file_id).metadata().get()
-    print (meta_data)
+    return meta_data
+#   print (meta_data)
 #updata meta data 
-def up_meta():
-    metadata = client.file(file_id='file_id').metadata()
+def up_meta(file_id):
+    metadata = client.file(file_id=file_id).metadata()
     update = metadata.start_update()
     update.add('/key', 'new_value')
     metadata.update(update)
-##user will have to look up access token
-oauth2 = OAuth2("client_id", "client_secret", access_token="access_token")
-#client = Client(oauth2)
+    return metadata
+def whatis_infolder(folder_id):
+    folder = client.folder(folder_id= folder_id).get()
+    ('folder name: ' + folder['name'])
+    #the limit can be set according to requirements 
+    items = folder.get_items(limit=100, offset=0)
+    for item in items:
+       print("   " + item.name)
+    return folder
+def download(file_id):
+    with open('C:\\Users\\dhussai\\Desktop\\down_box\\read.txt','wb') as open_file:
+        client.file(file_id).download_to(open_file)
+def event():
+    t = Test()
+    c = pycurl.Curl()
+    c.setopt(c.URL,"https://api.box.com/2.0/events?stream_position=1442239977411")
+    c.setopt(pycurl.HTTPHEADER, ['Authorization: Bearer 4cgX9o4b9T27ckbA9t3emKTLCdHXvxLR'])
+    c.setopt(c.WRITEFUNCTION, t.body_callback)
+    c.perform()
+    c.close()
+    events=(t.contents)
+    jsond=(json.JSONDecoder().decode(events))
+    return jsond
+oauth2 = OAuth2("68akmqusbktx65oelq9n6e166rmqw8el", "iE96DxCTUfw6USg3GsU7opw5hWArXtam", access_token="4cgX9o4b9T27ckbA9t3emKTLCdHXvxLR")
+client = Client(oauth2)
 my_jnj_box = client.user(user_id='me').get()
 print('user_login: ' + my_jnj_box['login'])
-
-root_folder = client.folder(folder_id= '0').get()
-print ('folder name: ' + root_folder['name'])
-## the limit can be set according to requirements 
-items = root_folder.get_items(limit=10, offset=0)
-print('This is up to the first 10 items in the root folder in JNJ Box:')
-for item in items:
-    print("   " + item.name)
-
-meta_data=client.folder(folder_id="0").metadata().get()
-
-
-    
+vendor_ids,name=ids("4308645477")
+#print(vendor_ids)
+def tree():
+    create_parentfolders("vendor")
+    vendor_ids,name=ids(parent_folder)
+    seed=vendor_ids[-1]
+    create_subfolders(seed)
+    seed_branch,names= ids(seed)
+    ID_incoming= seed_branch[0]
+    create_branch(ID_incoming)
+#metatcreate(37030354650,"tag","accepted")
+#metadata_files=info(37030354650)
+#jsondict_file=(json.JSONDecoder().decode(metadata_files))
+#ev=event()
