@@ -17,6 +17,7 @@ from boxsdk.object.events import Events
 from boxsdk.object.item import Item
 import pycurl,re,os,sys,json_tools,json
 import boto,unittest,StringIO
+
 class Test:
     def __init__(self):
         self.contents = ''
@@ -50,7 +51,7 @@ def ids(folder_id):
     t = Test()
     c = pycurl.Curl()
     c.setopt(c.URL, (str("https://api.box.com/2.0/folders/%s")%(folder_id)))
-    c.setopt(pycurl.HTTPHEADER, ['Authorization: Bearer lI2GbdKyZfIVLK2dY3vQtoFArO7AWQPEWfXmAAn6cpzqVaARyXfe3JoG9hiPDVqr'])
+    c.setopt(pycurl.HTTPHEADER, ['Authorization: Bearer QU37ay7GmyMFKnZuBgJWvWkIcpWii0BP'])
     c.setopt(c.WRITEFUNCTION, t.body_callback)
     c.perform()
     c.close()
@@ -100,15 +101,15 @@ def download(file_id):
 def event():
     t = Test()
     c = pycurl.Curl()
-    c.setopt(c.URL,"https://api.box.com/2.0/events?stream_position=1442239977411")
-    c.setopt(pycurl.HTTPHEADER, ['Authorization: Bearer lI2GbdKyZfIVLK2dY3vQtoFArO7AWQPEWfXmAAn6cpzqVaARyXfe3JoG9hiPDVqr'])
+    c.setopt(c.URL,"https://api.box.com/2.0/events?stream_position=1442347448411")
+    c.setopt(pycurl.HTTPHEADER, ['Authorization: Bearer QU37ay7GmyMFKnZuBgJWvWkIcpWii0BP'])
     c.setopt(c.WRITEFUNCTION, t.body_callback)
     c.perform()
     c.close()
     events=(t.contents)
     jsond=(json.JSONDecoder().decode(events))
     return jsond
-oauth2 = OAuth2("68akmqusbktx65oelq9n6e166rmqw8el", "iE96DxCTUfw6USg3GsU7opw5hWArXtam", access_token="lI2GbdKyZfIVLK2dY3vQtoFArO7AWQPEWfXmAAn6cpzqVaARyXfe3JoG9hiPDVqr")
+oauth2 = OAuth2("68akmqusbktx65oelq9n6e166rmqw8el", "iE96DxCTUfw6USg3GsU7opw5hWArXtam", access_token="QU37ay7GmyMFKnZuBgJWvWkIcpWii0BP")
 client = Client(oauth2)
 my_jnj_box = client.user(user_id='me').get()
 print('user_login: ' + my_jnj_box['login'])
@@ -126,3 +127,4 @@ def tree():
 #metadata_files=info(37030354650)
 #jsondict_file=(json.JSONDecoder().decode(metadata_files))
 #ev=event()
+tree()
