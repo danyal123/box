@@ -15,7 +15,7 @@ from boxsdk.object.folder import Folder
 from boxsdk.session.box_session import BoxSession
 from boxsdk.object.events import Events
 from boxsdk.object.item import Item
-import pycurl,re,os,sys,json_tools,json
+import pycurl,re,os,sys,json
 import boto,unittest,StringIO
 
 class Test:
@@ -123,8 +123,4 @@ def tree():
     seed_branch,names= ids(seed)
     ID_incoming= seed_branch[0]
     create_branch(ID_incoming)
-#metatcreate(37030354650,"tag","accepted")
-#metadata_files=info(37030354650)
-#jsondict_file=(json.JSONDecoder().decode(metadata_files))
-#ev=event()
 tree()
